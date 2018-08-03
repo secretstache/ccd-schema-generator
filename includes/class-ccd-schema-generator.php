@@ -163,7 +163,9 @@ class CCD_Schema_Generator {
 
 		$this->loader->add_action( 'init', $plugin_admin, 'call_registration' ); 
 
-		$this->loader->add_action( 'custom_schema_hook', $plugin_admin, 'create_schema', 10, 1 ); 
+		$this->loader->add_action( 'custom_schema_hook', $plugin_admin, 'create_schema', 10, 1 );
+		$this->loader->add_action( 'custom_post_schema_hook', $plugin_admin, 'create_post_schema', 10, 1 ); 
+
 	}
 
 	/**
