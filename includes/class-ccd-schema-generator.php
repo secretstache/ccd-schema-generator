@@ -154,18 +154,6 @@ class CCD_Schema_Generator {
 
 		$plugin_admin = new CCD_Schema_Generator_Admin( $this->get_plugin_name(), $this->get_version() );
 
-		/**
-		 *	10, 20, 30 - priorities. (firstly we register post types, then - taxonomies, then - terms)
-		 *	1 - number of arguments to be passed to function (1 array of args in this case for all functions)
-		 */
-
-		/* Registrations */
-
-		$this->loader->add_action( 'init', $plugin_admin, 'call_registration' ); 
-
-		$this->loader->add_action( 'custom_schema_hook', $plugin_admin, 'create_schema', 10, 1 );
-		$this->loader->add_action( 'custom_post_schema_hook', $plugin_admin, 'create_post_schema', 10, 1 ); 
-
 	}
 
 	/**
@@ -181,6 +169,8 @@ class CCD_Schema_Generator {
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+
+		$this->loader->add_action( 'wp_head', $plugin_public, 'show_schema' );
 
 	}
 
