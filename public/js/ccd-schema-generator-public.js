@@ -29,4 +29,18 @@
 	 * practising this, we should strive to set a better example in our own work.
 	 */
 
+
+	// Move breadcrumbs schema to header
+	$(document).ready( function() {
+
+		var scripts = $('script[type="application/ld+json"]');		
+		
+		if (scripts.length >= 2) {
+			scripts.last().insertBefore(scripts.first());
+		} else {
+			$('head').append( scripts.last() );
+		}
+
+	} )
+
 })( jQuery );

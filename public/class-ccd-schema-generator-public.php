@@ -964,27 +964,14 @@ class CCD_Schema_Generator_Public {
 	}
 
 	/**
-	 * The function is get the current post ID, collect required information, pass the
-	 * variables through template and output the result in '<head>' section 
+	 * The function is the main entry point, it gets all neccesarry
+	 * variables, pass it through template and output the result in '<head>' section 
 	 *	
 	 * @since    1.0.0
 	 */
-
 	public function show_schema() {
 
-		if ( !is_front_page() ) {
-
-			$breadcrumbs = $GLOBALS['breadcrumbs'];
-
-			$initial_context 	= $this->get_initial_context( 'BreadcrumbList' );
-			$breadcrumbs_list 	= $this->get_breadcrumbs_list( $breadcrumbs );
-
-			$breadcrumbs_args['initial_context'] 	= $initial_context;
-			$breadcrumbs_args['breadcrumbs_list'] 	= $breadcrumbs_list;
-
-			echo $this->create_breadcrumbs_schema( $breadcrumbs_args ); 
-
-		} else {
+		if ( is_front_page() ) {
 
 			$initial_context	= $this->get_initial_context( 'Organization' );
 			$common_info		= $this->get_common_info();
@@ -1071,6 +1058,28 @@ class CCD_Schema_Generator_Public {
 		}
 	}
 
+	/**
+	 * The function is the main entry point, it gets all breadcrumbs array,
+	 * pass it through template and output the result in '<footer>' section 
+	 *	
+	 * @since    1.0.0
+	 */
+	public function show_breadcrumbs_schema() {
 
+		if ( !is_front_page() ) {
+
+			$breadcrumbs = $GLOBALS['breadcrumbs'];
+
+			$initial_context 	= $this->get_initial_context( 'BreadcrumbList' );
+			$breadcrumbs_list 	= $this->get_breadcrumbs_list( $breadcrumbs );
+
+			$breadcrumbs_args['initial_context'] 	= $initial_context;
+			$breadcrumbs_args['breadcrumbs_list'] 	= $breadcrumbs_list;
+
+			echo $this->create_breadcrumbs_schema( $breadcrumbs_args ); 
+
+		}
+
+	}
 
 }
