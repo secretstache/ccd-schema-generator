@@ -132,30 +132,27 @@ class CCD_Schema_Generator_Public {
 
 		$template = '';
 		
-		$name	= get_bloginfo('name');
-		$url	= get_bloginfo('url');
+		$id = $url = $mainEntity	= get_bloginfo('url');
+		$name = $brand				= get_bloginfo('name');
+		$email 						= ssm_get_field( 'primary_email_address', 'options' );
+		$description				= 'test description';
+		$logo						= 'test logo';
+		$image						= 'test image';
 
-		if ( $name && $url ) {
+		if ( $id && $name ) {
 
 			$template .= "
-					\"name\": \"{$name}\",
+					\"@id\": \"{$id}\",
 					\"url\": \"{$url}\",
+					\"mainEntityofPage\": \"{$mainEntity}\",
+					\"name\": \"{$name}\",
+					\"email\": \"{$email}\",
+					\"brand\": \"{$brand}\",
+					\"description\": \"{$description}\",
+					\"logo\": \"{$logo}\",
+					\"image\": \"{$image}\",
 			";
 
-		}
-
-		if ( ssm_get_field( 'brand_logo', 'options' ) ) {
-
-			$logo_type 	= "ImageObject";
-			$logo_url	= ssm_get_field('brand_logo', 'options')['url'];
-
-			$template .= "
-					\"logo\":
-					{
-						\"@type\": \"{$logo_type}\",
-						\"url\": \"{$logo_url}\"
-					},
-			";
 		}
 
 		return $template;
@@ -196,6 +193,29 @@ class CCD_Schema_Generator_Public {
 		
 		}
 		
+		return $template;
+
+	}
+
+	/**
+	 * Get site founder
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_founder() {
+
+		$template = '';
+
+		$type = 'Person';
+		$name = 'John Doe';
+
+		$template .= "
+					\"founder\": { 
+						\"@type\": \"{$type}\",
+						\"name\": \"{$name}\"
+					}
+		";
+
 		return $template;
 
 	}
@@ -334,7 +354,7 @@ class CCD_Schema_Generator_Public {
 
 			$type 			= "Person";
 			$name	 		= $main_author['first_name'][0] . " " . $main_author['last_name'][0];
-			$url 	= get_author_posts_url( get_post_field ('post_author', $post_id ) );
+			$url 			= get_author_posts_url( get_post_field ('post_author', $post_id ) );
 
 			$template .= "
 					{
@@ -475,6 +495,141 @@ class CCD_Schema_Generator_Public {
 	}
 
 	/**
+	 * Get post sponsor
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_breadcrumbs_list( $breadcrumbs ) {
+
+		$template = "";
+
+		if ( $breadcrumbs['elementCount'] > 0 ) {
+
+			$template .= "
+					\"itemListElement\": [
+			";
+
+			foreach ( $breadcrumbs['elements'] as $key => $element ) {
+				
+				$position = $key + 1;
+				$id = $element['id'];
+				$name = $element['name'];
+
+				$template .= "
+						{
+							\"@type\": \"ListItem\",
+							\"position\": \"{$position}\",
+							\"item\": {
+								\"@id\": \"{$id}\",
+								\"name\": \"{$name}\"
+							}
+						},
+				";
+
+			}
+
+			$template .= "
+					]";
+		
+		}
+
+		return $template;
+	}
+
+	/**
+	 * Get QA Page common info
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_faq_common( $post_id ) {
+
+		$template = '';
+
+		$id = $url = get_the_permalink( $post_id );
+		$about = get_term_by( 'id', get_post_meta( $post_id, 'post_category', true ), 'category' )->name;
+		
+		$template .= "
+					\"@id\": \"{$id}\", 
+					\"url\": \"{$url}\", 
+					\"about\": \"{$about}\", 
+		";
+
+		return $template;
+
+	}
+
+	/**
+	 * Get QA Page reviwer
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_faq_reviewed_by( $post_id ) {
+
+		$template = '';
+
+		$type = 'Organization';
+		$name = get_bloginfo('name');
+
+		$template .= " 
+					\"reviewedBy\": {
+						\"@type\": \"{$type}\",
+						\"name\": \"{$name}\"
+					}";
+
+		return $template;
+
+	}
+
+	/**
+	 * Get QA Page publisher
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_faq_publisher( $post_id ) {
+
+		$template = '';
+
+		$type = 'Organization';
+		$name = get_bloginfo('name');
+
+		$template .= " 
+					\"publisher\": {
+						\"@type\": \"{$type}\",
+						\"name\": \"{$name}\"
+					}";
+
+		return $template;
+
+	}
+
+	/**
+	 * Get QA Page contributor
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_faq_contributor( $post_id ) {
+
+		$template = '';
+
+		$contributor_id = get_post_meta( $post_id, 'additional_author', true );
+		$contributor 	= get_post_meta( $contributor_id );
+
+		$type 	= 'Person';
+		$name 	= get_post_field ('post_title', $contributor_id ) . ", " . $contributor['expert_suffix'][0];
+		$url 	= get_post_permalink( $contributor_id );
+
+		$template .= " 
+					\"contributor\": {
+						\"@type\": \"{$type}\",
+						\"name\": \"{$name}\"
+						\"url\": \"{$url}\"
+					}";
+
+		return $template;
+
+	}
+
+	/**
 	 * The function receives an array of arguments and return a genaeral schema
 	 *	
 	 * @since    1.0.0
@@ -487,9 +642,12 @@ class CCD_Schema_Generator_Public {
 					{$args['initial_context']}
 					{$args['common_info']}
 					{$args['social_media']}
+					{$args['founder']}
 				} 
 			</script>
 		";
+
+		return $template;
 
 	}
 
@@ -519,6 +677,54 @@ class CCD_Schema_Generator_Public {
 	}
 
 	/**
+	 * The function receives an array of arguments and return a schema for any page which has breadcrumbs
+	 *	
+	 * @since    1.0.0
+	 */
+	public function create_breadcrumbs_schema( $breadcrumbs_args ) {
+
+		$template = "
+			<script type = \"application/ld+json\" >
+				{
+					{$breadcrumbs_args['initial_context']}
+					{$breadcrumbs_args['breadcrumbs_list']}
+				} 
+			</script>
+		";
+
+		// {$args['post_sponsor']}
+
+		return $template;
+
+	}
+
+	/**
+	 * The function receives an array of arguments and return a schema
+	 * for post with post format 'Expert Sessions'
+	 *	
+	 * @since    1.0.0
+	 */
+	public function create_qapage_schema( $qapage_args ) {
+
+		$template = "
+			<script type = \"application/ld+json\" >
+				{
+					{$qapage_args['initial_context']}
+					{$qapage_args['faq_common']}
+					{$qapage_args['faq_reviewed_by']}
+					{$qapage_args['faq_publisher']}
+					{$qapage_args['faq_contributor']}
+				} 
+			</script>
+		";
+
+		// {$args['post_sponsor']}
+
+		return $template;
+
+	}
+
+	/**
 	 * The function is get the current post ID, collect required information, pass the
 	 * variables through template and output the result in '<head>' section 
 	 *	
@@ -526,6 +732,34 @@ class CCD_Schema_Generator_Public {
 	 */
 
 	public function show_schema() {
+
+		if ( !is_front_page() ) {
+
+			$breadcrumbs = $GLOBALS['breadcrumbs'];
+
+			$initial_context 	= $this->get_initial_context( 'BreadcrumbList' );
+			$breadcrumbs_list 	= $this->get_breadcrumbs_list( $breadcrumbs );
+
+			$breadcrumbs_args['initial_context'] 	= $initial_context;
+			$breadcrumbs_args['breadcrumbs_list'] 	= $breadcrumbs_list;
+
+			echo $this->create_breadcrumbs_schema( $breadcrumbs_args ); 
+
+		} else {
+
+			$initial_context	= $this->get_initial_context( 'Organization' );
+			$common_info		= $this->get_common_info();
+			$social_media		= $this->get_social_media();
+			$founder			= $this->get_founder();
+
+			$mainpage_args['initial_context']	= $initial_context;
+			$mainpage_args['common_info']		= $common_info;
+			$mainpage_args['social_media']		= $social_media;
+			$mainpage_args['founder']			= $founder;
+
+			echo $this->create_mainpage_schema( $mainpage_args );
+		
+		}
 
 		if ( is_single() ) {
 
@@ -546,8 +780,30 @@ class CCD_Schema_Generator_Public {
 			// $post_args['post_sponsor']		= $post_sponsor;
 
 			echo $this->create_post_schema( $post_args );
-		
+			
+			$post_format_slug = get_term_by( 'id', get_post_meta( $post_id, 'post_format', true ), 'ccd_post_format' )->slug;
+			
+			if ( $post_format_slug == 'expert-sessions' ) {
+
+				$initial_context 	= $this->get_initial_context( 'QAPage' );
+				$faq_common			= $this->get_faq_common( $post_id );
+				$faq_reviewed_by	= $this->get_faq_reviewed_by( $post_id );
+				$faq_publisher		= $this->get_faq_publisher( $post_id );
+				$faq_contributor	= $this->get_faq_contributor( $post_id );
+
+				$qapage_args['initial_context']	= $initial_context;
+				$qapage_args['faq_common']		= $faq_common;
+				$qapage_args['faq_reviewed_by'] = $faq_reviewed_by;
+				$qapage_args['faq_publisher']	= $faq_publisher;
+				$qapage_args['faq_contributor']	= $faq_contributor;
+				
+				echo $this->create_qapage_schema( $qapage_args );
+
+			}
+
 		}
 	}
+
+
 
 }
