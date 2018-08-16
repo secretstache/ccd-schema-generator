@@ -615,7 +615,7 @@ class CCD_Schema_Generator_Public {
 		$contributor 	= get_post_meta( $contributor_id );
 
 		$type 	= 'Person';
-		$name 	= get_post_field ('post_title', $contributor_id ) . ", " . $contributor['expert_suffix'][0];
+		$name 	= get_expert_title( $contributor_id );
 		$url 	= get_post_permalink( $contributor_id );
 
 		$template .= " 
@@ -624,6 +624,199 @@ class CCD_Schema_Generator_Public {
 						\"name\": \"{$name}\"
 						\"url\": \"{$url}\"
 					}";
+
+		return $template;
+
+	}
+
+	/**
+	 * Get FAQ schema questions
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_faq_questions( $post_id ) {
+
+		$template = '';
+
+		$context 	= 'http://schema.org';
+		$type 		= 'Question';
+		$answerType	= 'Answer';
+
+		$questions = array();
+
+		$args = array(
+			"post_type" 	=> 'ccd_question',
+			"numberposts"	=> -1,
+			"order"			=> "ASC",
+
+			'meta_query' 	=> array(
+				array(
+					'key' 		=> 'session_id',
+					'value' 	=> $post_id,
+					'compare' 	=> 'LIKE'
+				),
+			)
+		);
+
+		$posts = get_posts( $args );
+
+		foreach ( $posts as $post ) {
+			array_push( $questions, array( "name" => $post->post_title, "answer" => $post->post_content ) );
+		}
+
+		foreach ( $questions as $question ) {
+
+			$template .= "
+					{
+						\"@context\": \"{$context}\",
+						\"@type\": \"{$type}\",
+						\"name\": \"{$question['name']}\",
+						\"acceptedAnswer\": {
+							\"@type\": \"{$answerType}\",
+							\"text\": \"{$question['answer']}\"
+						}
+					},
+			";
+
+		}
+
+		return $template;
+
+	}
+
+	/**
+	 * Get Expert Page Common info
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_expert_common( $post_id ) {
+
+		$template = '';
+
+		$id = $url = $mainEntity = get_post_permalink( $post_id );
+		$name = get_expert_title( $post_id );
+		$email = 'test email';
+		$description = "Contributor at The Cell Culture Dish.";
+		$image = get_home_url() . wp_get_attachment_image_src( get_post_thumbnail_id( $post_id ), 'full' )[0];
+		
+		$template .= "
+					\"@id\": \"{$id}\",
+					\"url\": \"{$url}\",
+					\"mainEntityofPage\": \"{$mainEntity}\",
+					\"name\": \"{$name}\",
+					\"email\": \"{$email}\",
+					\"description\": \"{$description}\",
+					\"image\": \"{$image}\",
+		";
+
+		return $template;
+
+	}
+
+	/**
+	 * Get Expert Page social media info
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_expert_media( $post_id ) {
+		
+		$template = '';
+
+		$linkedin = get_field( 'linkedin_profile', $post_id );
+
+		$template .= " 
+					\"sameAs\": {
+						\"{$linkedin}\"
+					},
+		";
+
+		return $template;
+
+	}
+
+	/**
+	 * Get Expert Page affiliation info
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_expert_affiliation( $post_id ) {
+
+		$template = '';
+
+		$type = 'Organization';
+		$name = get_post_field( 'post_title', get_field( 'expert_company' , $post_id ) );
+
+		$template .= "
+					\"affiliation\": {
+						\"@type\": \"{$type}\",
+						\"name\": \"{$name}\"
+					},		
+		";
+
+		return $template;
+
+	}
+
+	/**
+	 * Get Expert Page organization info
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_expert_organization( $post_id ) {
+
+		$template = '';
+
+		$type = 'Organization';
+		$name = get_post_field( 'post_title', get_field( 'expert_company' , $post_id ) );
+
+		$template .= "
+					\"memberOf\": {
+						\"@type\": \"{$type}\",
+						\"name\": \"{$name}\"
+					},		
+		";
+
+		return $template;
+
+	}
+
+	/**
+	 * Get Expert Page company info
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_expert_company( $post_id ) {
+
+		$template = '';
+
+		$type = 'Organization';
+		$name = get_post_field( 'post_title', get_field( 'expert_company' , $post_id ) );
+
+		$template .= "
+					\"worksFor\": {
+						\"@type\": \"{$type}\",
+						\"name\": \"{$name}\"
+					},		
+		";
+
+		return $template;
+
+	}
+
+	/**
+	 * Get Expert Page title
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_expert_title( $post_id ) {
+
+		$template = '';
+
+		$title = get_field( 'expert_job_title', $post_id );
+
+		$template .= "
+					\"jobTitle\": \"{$title}\"
+		";
 
 		return $template;
 
@@ -725,6 +918,52 @@ class CCD_Schema_Generator_Public {
 	}
 
 	/**
+	 * The function receives an array of arguments and return a schema
+	 * which contains set of question-answer for post with post format 'Expert Sessions'
+	 *	
+	 * @since    1.0.0
+	 */
+	public function create_qapage_questions_schema( $qapage_questions_args ) {
+
+		$template = "
+			<script type= \"application/ld+json\" >
+				[
+					{$qapage_questions_args['questions']}
+				]
+			</script>
+		";
+
+		return $template;
+
+	}
+
+	/**
+	 * The function receives an array of arguments and return a schema
+	 * for the expert page.
+	 *	
+	 * @since    1.0.0
+	 */
+	public function create_expert_schema( $expert_args ) {
+
+		$template = "
+			<script type = \"application/ld+json\" >
+				{
+					{$expert_args['initial_context']}
+					{$expert_args['expert_common']}
+					{$expert_args['expert_media']}
+					{$expert_args['expert_affiliation']}
+					{$expert_args['expert_organization']}
+					{$expert_args['expert_company']}
+					{$expert_args['expert_title']}
+				} 
+			</script>
+		";
+
+		return $template;
+
+	}
+
+	/**
 	 * The function is get the current post ID, collect required information, pass the
 	 * variables through template and output the result in '<head>' section 
 	 *	
@@ -782,7 +1021,7 @@ class CCD_Schema_Generator_Public {
 			echo $this->create_post_schema( $post_args );
 			
 			$post_format_slug = get_term_by( 'id', get_post_meta( $post_id, 'post_format', true ), 'ccd_post_format' )->slug;
-			
+
 			if ( $post_format_slug == 'expert-sessions' ) {
 
 				$initial_context 	= $this->get_initial_context( 'QAPage' );
@@ -798,6 +1037,34 @@ class CCD_Schema_Generator_Public {
 				$qapage_args['faq_contributor']	= $faq_contributor;
 				
 				echo $this->create_qapage_schema( $qapage_args );
+
+				$questions = $this->get_faq_questions( $post_id );
+
+				$qapage_questions_args['questions'] = $questions;
+
+				echo $this->create_qapage_questions_schema( $qapage_questions_args );
+
+			}
+
+			if ( get_post_type( $post_id ) == "ccd_expert" ) {
+
+				$initial_context 		= $this->get_initial_context( 'Person' );
+				$expert_common			= $this->get_expert_common( $post_id );
+				$expert_media			= $this->get_expert_media( $post_id );
+				$expert_affiliation		= $this->get_expert_affiliation( $post_id );
+				$expert_organization	= $this->get_expert_organization( $post_id );
+				$expert_company			= $this->get_expert_company( $post_id );
+				$expert_title			= $this->get_expert_title( $post_id );
+
+				$expert_args['initial_context']		= $initial_context;
+				$expert_args['expert_common']		= $expert_common;
+				$expert_args['expert_media']		= $expert_media;
+				$expert_args['expert_affiliation']	= $expert_affiliation;
+				$expert_args['expert_organization']	= $expert_organization;
+				$expert_args['expert_company']		= $expert_company;
+				$expert_args['expert_title']		= $expert_title;
+
+				echo $this->create_expert_schema( $expert_args );
 
 			}
 
