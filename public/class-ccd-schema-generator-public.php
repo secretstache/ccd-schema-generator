@@ -134,10 +134,14 @@ class CCD_Schema_Generator_Public {
 		
 		$id = $url = $mainEntity	= get_bloginfo('url');
 		$name = $brand				= get_bloginfo('name');
-		$email 						= ssm_get_field( 'primary_email_address', 'options' );
-		$description				= 'test description';
-		$logo						= 'test logo';
-		$image						= 'test image';
+		$email 						= get_field( 'ccd_default_email', 'options' );
+		$description				= get_bloginfo('description');
+
+		$logo = get_field('schema_brand_logo', 'options');
+		$logo_url = $logo['url'];
+		$logo_width = $logo['width'];
+		$logo_height = $logo['height'];
+		$image_url = $logo['url'];
 
 		if ( $id && $name ) {
 
@@ -149,8 +153,8 @@ class CCD_Schema_Generator_Public {
 					\"email\": \"{$email}\",
 					\"brand\": \"{$brand}\",
 					\"description\": \"{$description}\",
-					\"logo\": \"{$logo}\",
-					\"image\": \"{$image}\",
+					\"logo\": \"{$logo_url}\",
+					\"image\": \"{$image_url}\",
 			";
 
 		}
@@ -167,7 +171,7 @@ class CCD_Schema_Generator_Public {
 	public function get_social_media() {
 
 		$social_links = array();
-		$requested_networks = array( 'facebook', 'linkedin', 'pinterest');
+		$requested_networks = array( 'facebook', 'twitter', 'google', 'linkedin', 'youtube');
 
 		foreach ( $requested_networks as $network ) {
 
@@ -207,7 +211,7 @@ class CCD_Schema_Generator_Public {
 		$template = '';
 
 		$type = 'Person';
-		$name = 'John Doe';
+		$name = get_field('ccd_founder', 'options');
 
 		$template .= "
 					\"founder\": { 
@@ -415,9 +419,9 @@ class CCD_Schema_Generator_Public {
 
 		$type 			= "Organization";
 		$name			= get_bloginfo('name');
-		// $url			= get_bloginfo('url');
-		// $phone_number 	= ssm_get_field( 'primary_phone_number', 'options');
-		// $email			= ssm_get_field( 'primary_email_address', 'options');
+		$url			= get_bloginfo('url');
+		$phone_number 	= get_field( 'ccd_default_phone_number', 'options');
+		$email			= get_field( 'ccd_default_email', 'options');
 
 		if ( $name ) {
 
@@ -436,12 +440,12 @@ class CCD_Schema_Generator_Public {
 
 		}
 
-		if ( ssm_get_field( 'brand_logo', 'options' ) ) {
+		if ( get_field( 'schema_brand_logo', 'options' ) ) {
 
 			$logo_type 		= "ImageObject";
-			$logo_url		= ssm_get_field('brand_logo', 'options')['url'];
-			$logo_width		= ssm_get_field('brand_logo', 'options')['sizes']['medium-width'];
-			$logo_height	= ssm_get_field('brand_logo', 'options')['sizes']['medium-height'];
+			$logo_url		= get_field('schema_brand_logo', 'options')['url'];
+			$logo_width		= get_field('schema_brand_logo', 'options')['width'];
+			$logo_height	= ssm_get_field('schema_brand_logo', 'options')['height'];
 
 			$template .= "
 						\"logo\":
@@ -695,7 +699,7 @@ class CCD_Schema_Generator_Public {
 
 		$id = $url = $mainEntity = get_post_permalink( $post_id );
 		$name = get_expert_title( $post_id );
-		$email = 'test email';
+		// $email = 'test email';
 		$description = "Contributor at The Cell Culture Dish.";
 		$image = get_home_url() . wp_get_attachment_image_src( get_post_thumbnail_id( $post_id ), 'full' )[0];
 		
@@ -704,7 +708,6 @@ class CCD_Schema_Generator_Public {
 					\"url\": \"{$url}\",
 					\"mainEntityofPage\": \"{$mainEntity}\",
 					\"name\": \"{$name}\",
-					\"email\": \"{$email}\",
 					\"description\": \"{$description}\",
 					\"image\": \"{$image}\",
 		";
