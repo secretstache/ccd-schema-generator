@@ -55,68 +55,22 @@ class CCD_Schema_Generator_Public {
 	}
 
 	/**
-	 * Register the stylesheets for the public-facing side of the site.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_styles() {
-
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in CCD_Schema_Generator_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The CCD_Schema_Generator_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/ccd-schema-generator-public.css', array(), $this->version, 'all' );
-
-	}
-
-	/**
-	 * Register the JavaScript for the public-facing side of the site.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_scripts() {
-
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in CCD_Schema_Generator_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The CCD_Schema_Generator_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/ccd-schema-generator-public.js', array( 'jquery' ), $this->version, false );
-
-	}
-
-	/**
 	 * Get initial schema context, such as: @context, @type 
 	 *	
 	 * @since    1.0.0
 	 */
 	public function get_initial_context( $type ) {
 
-		$template = '';
+		$template = [];
 
-		$context	= "http://schema.org";
+		$context = "http://schema.org";
 
 		if ( $context && $type ) {
 		
-			$template .= "
-					\"@context\": \"{$context}\",
-					\"@type\": \"{$type}\",
-			";
+			$template = array(
+				"@context" 	=> $context,
+				"@type" 	=> $type
+			);
 		}
 
 		return $template;
@@ -130,7 +84,7 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_common_info() {
 
-		$template = '';
+		$template = [];
 		
 		$id = $url = $mainEntity	= get_bloginfo('url');
 		$name = $brand				= get_bloginfo('name');
@@ -145,17 +99,17 @@ class CCD_Schema_Generator_Public {
 
 		if ( $id && $name ) {
 
-			$template .= "
-					\"@id\": \"{$id}\",
-					\"url\": \"{$url}\",
-					\"mainEntityofPage\": \"{$mainEntity}\",
-					\"name\": \"{$name}\",
-					\"email\": \"{$email}\",
-					\"brand\": \"{$brand}\",
-					\"description\": \"{$description}\",
-					\"logo\": \"{$logo_url}\",
-					\"image\": \"{$image_url}\",
-			";
+			$template = array(
+					"@id" 				=> $id,
+					"url" 				=> $url,
+					"mainEntityofPage"	=> $mainEntity,
+					"name"				=> $name,
+					"email"				=> $email,
+					"brand"				=> $brand,
+					"description"		=> $description,
+					"logo"				=> $logo_url,
+					"image"				=> $image_url
+			);
 
 		}
 
@@ -170,31 +124,16 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_social_media() {
 
-		$social_links = array();
-		$requested_networks = array( 'facebook', 'twitter', 'google', 'linkedin', 'youtube');
+		$template = [];
+		$template["sameAs"] = [];
+		$requested_networks = [ 'facebook', 'twitter', 'google', 'linkedin', 'youtube' ];
 
 		foreach ( $requested_networks as $network ) {
 
 			if ( ssm_get_field( $network, 'options' ) ) {
-				array_push( $social_links, ssm_get_field( $network, 'options' ) );
+				array_push( $template['sameAs'], ssm_get_field( $network, 'options' ) );
 			}
 			
-		}
-
-		if ( !empty( $social_links ) ) {
-
-			$template .= " 
-					\"sameAs\": [";
-	
-				foreach ( $social_links as $link ) {
-					$template .= "
-						\"{$link}\",
-					";
-				}
-
-			$template .= "
-					]";
-		
 		}
 		
 		return $template;
@@ -208,17 +147,61 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_founder() {
 
-		$template = '';
+		$template = [];
+		$template['founder'] = [];
 
 		$type = 'Person';
 		$name = get_field('ccd_founder', 'options');
 
-		$template .= "
-					\"founder\": { 
-						\"@type\": \"{$type}\",
-						\"name\": \"{$name}\"
-					}
-		";
+		$template['founder'] = array(
+			"@type" => $type,
+			"name" 	=> $name
+		);
+
+		return $template;
+
+	}
+
+	/**
+	 * Get post publisher
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_post_publisher() {
+
+		$template = [];
+		$template['publisher'] = [];
+
+		$type 			= "Organization";
+		$name			= get_bloginfo('name');
+		$url			= get_bloginfo('url');
+		$phone_number 	= get_field( 'ccd_default_phone_number', 'options');
+		$email			= get_field( 'ccd_default_email', 'options');
+
+		if ( $name ) {
+
+			$template['publisher'] = array(
+				"@type" => $type,
+				"name"	=> $name
+			);
+
+		}
+
+		if ( get_field( 'schema_brand_logo', 'options' ) ) {
+
+			$logo_type 		= "ImageObject";
+			$logo_url		= get_field('schema_brand_logo', 'options')['url'];
+			$logo_width		= get_field('schema_brand_logo', 'options')['width'];
+			$logo_height	= ssm_get_field('schema_brand_logo', 'options')['height'];
+
+			$template['publisher']['logo'] = array(
+				"@type" 	=> $logo_type,
+				"url"		=> $logo_url,
+				"width"		=> $logo_width,
+				"height"	=> $logo_height
+			);
+
+		}
 
 		return $template;
 
@@ -232,109 +215,18 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_post_info( $post_id ) {
 
-		$template = "";
+		$template = [];
 
 		$link = get_the_permalink( $post_id );
-
-		if ( $link ) {
-
-			$template .= "
-					\"mainEntityOfPage\": \"{$link}\",
-				";
-		}
-
 		$title = get_the_title( $post_id );
-
-		if ( $title ) {
-
-			$template .= "
-					\"headline\": \"{$title}\",
-				";
-		}
-
 		$date_published = get_the_date( "Y-m-d\TG:i:s\.000\Z", $post_id );
-
-		if ( $date_published ) {
-
-			$template .= "
-					\"datePublished\": \"{$date_published}\",
-				";
-		}
-
 		$date_modified = get_the_modified_date( "Y-m-d\TG:i:s\.000\Z", $post_id );
 
-		if ( $date_modified ) {
 
-			$template .= "
-					\"dateModified\": \"{$date_modified}\",
-				";
-		}
-
-		// $word_count = str_word_count( get_post_field( 'post_content', $post_id ), 0 );
-
-		// if ( $word_count ) {
-
-		// 	$template .= "
-		// 			\"wordCount\": \"{$word_count}\",
-		// 		";
-		// }
-
-		// $description = get_post_field( 'post_excerpt', $post_id );
-		
-		// if ( !$description ) {
-		// 	$description = explode( ".", get_post_field( 'post_content', $post_id ) )[0];
-		// }
-
-		// if ( $description ) {
-
-		// 	$template .= "
-		// 			\"description\": \"{$description}\",
-		// 		";
-		// }
-
-		// $content = get_post_field( 'post_content', $post_id );
-		// $content = substr( $content, 0, 200 ) . "..."; //temp
-
-		// if ( $content ) {
-
-		// 	$template .= "
-		// 			\"articleBody\": \"{$content}\",
-		// 		";
-		// }
-
-		return $template;
-
-	}
-
-	/**
-	 * Get post image
-	 *	
-	 * @since    1.0.0
-	 */
-	public function get_post_image( $post_id ) {
-
-		$template = "";
-
-		$image = wp_get_attachment_image_src( get_post_thumbnail_id( $post_id ), 'full' );
-
-		if ( $image ) {
-
-				$image_type 	= "ImageObject";
-				$image_url		= $image[0];
-				$image_width	= $image[1];
-				$image_height	= $image[2];
-	
-				$template .= "
-					\"image\":
-					{
-						\"@type\": \"{$image_type}\",
-						\"url\": \"{$image_url}\",
-						\"width\": {$image_width},
-						\"height\": {$image_height}
-					},
-				";
-
-			}
+		$template['mainEntityOfPage']	= $link ? $link : '';
+		$template['headline']			= $title ? $title : '';
+		$template['datePublished']		= $date_published ? $date_published : '';
+		$template['dateModified']		= $date_modified ? $date_modified : '';
 
 		return $template;
 
@@ -347,119 +239,73 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_post_author( $post_id ) {
 
-		$template = "";
+		$template = [];
 
 		$main_author = get_user_meta( get_post_field ('post_author', $post_id ) );		
 
 		if ($main_author) {
 
-			$template .= " 
-					\"author\": [";
+			$template['author'] = [];
 
-			$type 			= "Person";
-			$name	 		= $main_author['first_name'][0] . " " . $main_author['last_name'][0];
-			$url 			= get_author_posts_url( get_post_field ('post_author', $post_id ) );
+			$type 	= "Person";
+			$name	= $main_author['first_name'][0] . " " . $main_author['last_name'][0];
+			$url 	= get_author_posts_url( get_post_field ('post_author', $post_id ) );
 
-			$template .= "
-					{
-						\"@type\": \"{$type}\",
-						\"name\": \"{$name}\",
-						\"url\": \"{$url}\"	
-					},
-			";
+			$template['author'][] = array(
+				"@type" => $type,
+				"name"	=> $name,
+				"url" 	=> $url
+			);
 				
 		}
 
-		$additional_author_id 	= get_post_meta( $post_id, 'additional_author', true );
-		$additional_author 		= get_post_meta( $additional_author_id );
+		$additional_author_id = get_post_meta( $post_id, 'additional_author', true );
 
-		if ( $additional_author ) {
+		if ( $additional_author_id ) {
 
-			$type 			= "Person";
-			$name			= get_post_field ('post_title', $additional_author_id );
-			$url 			= get_post_permalink( $additional_author_id );
+			$type 	= "Person";
+			$name	= get_post_field ('post_title', $additional_author_id );
+			$url 	= get_post_permalink( $additional_author_id );
 
-			// $prefix 		= $additional_author['expert_prefix'][0];
-			// $suffix 		= $additional_author['expert_suffix'][0];
-			// $title 			= $additional_author['expert_job_title'][0];
-			// $company 		= $additional_author['expert_company'][0];
-			// $description	= get_post_field ('post_content', $additional_author_id );
-
-			$template .= "
-					{
-						\"@type\": \"{$type}\",
-						\"name\": \"{$name}\",
-						\"url\": \"{$url}\"
-					},			
-			";
+			$template['author'][] = array(
+				"@type" => $type,
+				"name"	=> $name,
+				"url" 	=> $url
+			);
 
 		}
-
-		// \"honorificPrefix\": \"{$prefix}\",
-		// \"honorificSuffix\": \"{$suffix}\",
-		// \"jobTitle\": \"{$title}\",
-		// \"worksFor\": \"{$company}\",
-		// \"description\": \"{$description}\",
-
-		$template .= "
-					]";
 
 		return $template;
 
 	}
 
 	/**
-	 * Get post publisher
+	 * Get post image
 	 *	
 	 * @since    1.0.0
 	 */
-	public function get_post_publisher() {
+	public function get_post_image( $post_id ) {
 
-		$template = "";
+		$template = [];
+		$template['image'] = [];
 
-		$type 			= "Organization";
-		$name			= get_bloginfo('name');
-		$url			= get_bloginfo('url');
-		$phone_number 	= get_field( 'ccd_default_phone_number', 'options');
-		$email			= get_field( 'ccd_default_email', 'options');
+		$image = wp_get_attachment_image_src( get_post_thumbnail_id( $post_id ), 'full' );
 
-		if ( $name ) {
+		if ( $image ) {
 
-			$template .= " 
-					\"publisher\": 
-					{";
-
-			$template .= "
-						\"@type\": \"$type\",
-						\"name\": \"{$name}\",
-			";
-
-			// \"url\": \"{$url}\",
-			// \"phone_number\": \"{$phone_number}\",
-			// \"email\": \"{$email}\",
+				$image_type 	= "ImageObject";
+				$image_url		= $image[0];
+				$image_width	= $image[1];
+				$image_height	= $image[2];
+	
+				$template['image'] = array(
+					"@type" 	=> $image_type,
+					"url"		=> $image_url,
+					"width" 	=> $image_width,
+					"height"	=> $image_height
+				);
 
 		}
-
-		if ( get_field( 'schema_brand_logo', 'options' ) ) {
-
-			$logo_type 		= "ImageObject";
-			$logo_url		= get_field('schema_brand_logo', 'options')['url'];
-			$logo_width		= get_field('schema_brand_logo', 'options')['width'];
-			$logo_height	= ssm_get_field('schema_brand_logo', 'options')['height'];
-
-			$template .= "
-						\"logo\":
-						{
-							\"@type\": \"{$logo_type}\",
-							\"url\": \"{$logo_url}\"
-							\"width\": \"{$logo_width}\"
-							\"height\": \"{$logo_height}\"
-						}
-			";
-		}
-
-		$template .= " 
-					},";
 
 		return $template;
 
@@ -499,47 +345,40 @@ class CCD_Schema_Generator_Public {
 	}
 
 	/**
-	 * Get post sponsor
+	 * Get breadcrumbs list
 	 *	
 	 * @since    1.0.0
 	 */
 	public function get_breadcrumbs_list( $breadcrumbs ) {
 
-		$template = "";
+		$template = [];
 
 		if ( $breadcrumbs['elementCount'] > 0 ) {
 
-			$template .= "
-					\"itemListElement\": [
-			";
+			$template['itemListElement'] = [];
 
 			foreach ( $breadcrumbs['elements'] as $key => $element ) {
-				
+
 				$position = $key + 1;
 				$id = $element['id'];
 				$name = $element['name'];
 
-				$template .= "
-						{
-							\"@type\": \"ListItem\",
-							\"position\": \"{$position}\",
-							\"item\": {
-								\"@id\": \"{$id}\",
-								\"name\": \"{$name}\"
-							}
-						},
-				";
+				array_push( $template['itemListElement'], array(
+					"@type" 		=> "ListItem",
+					"position" 		=> $position,
+					"item"			=> array(
+						"@id" 	=> $id,
+						"name"	=> $name
+					)
+				) );
 
 			}
 
-			$template .= "
-					]";
-		
 		}
 
 		return $template;
-	}
 
+	}
 	/**
 	 * Get QA Page common info
 	 *	
@@ -547,16 +386,16 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_faq_common( $post_id ) {
 
-		$template = '';
+		$template = [];
 
 		$id = $url = get_the_permalink( $post_id );
 		$about = get_term_by( 'id', get_post_meta( $post_id, 'post_category', true ), 'category' )->name;
 		
-		$template .= "
-					\"@id\": \"{$id}\", 
-					\"url\": \"{$url}\", 
-					\"about\": \"{$about}\", 
-		";
+		$template = array(
+			"@id"	=> $id,
+			"url"	=> $url,
+			"about"	=> $about
+		);
 
 		return $template;
 
@@ -569,16 +408,16 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_faq_reviewed_by( $post_id ) {
 
-		$template = '';
+		$template = [];
+		$template['reviewedBy'] = [];
 
 		$type = 'Organization';
 		$name = get_bloginfo('name');
 
-		$template .= " 
-					\"reviewedBy\": {
-						\"@type\": \"{$type}\",
-						\"name\": \"{$name}\"
-					}";
+		$template['reviewedBy'] = array(
+			"@type" => $type,
+			"name"	=> $name
+		);
 
 		return $template;
 
@@ -591,16 +430,16 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_faq_publisher( $post_id ) {
 
-		$template = '';
+		$template = [];
+		$template['publisher'] = [];
 
 		$type = 'Organization';
 		$name = get_bloginfo('name');
 
-		$template .= " 
-					\"publisher\": {
-						\"@type\": \"{$type}\",
-						\"name\": \"{$name}\"
-					}";
+		$template['publisher'] = array(
+			"@type"	=> $type,
+			"name"	=> $name
+		);
 
 		return $template;
 
@@ -613,21 +452,23 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_faq_contributor( $post_id ) {
 
-		$template = '';
+		$template = [];
+		$template['contributor'] = [];
 
 		$contributor_id = get_post_meta( $post_id, 'additional_author', true );
-		$contributor 	= get_post_meta( $contributor_id );
 
-		$type 	= 'Person';
-		$name 	= get_expert_title( $contributor_id );
-		$url 	= get_post_permalink( $contributor_id );
+		if ( $contributor_id ) {
+			$type 	= 'Person';
+			$name 	= get_expert_title( $contributor_id );
+			$url 	= get_post_permalink( $contributor_id );
 
-		$template .= " 
-					\"contributor\": {
-						\"@type\": \"{$type}\",
-						\"name\": \"{$name}\"
-						\"url\": \"{$url}\"
-					}";
+			$template['contributor'] = array(
+				"@type"	=> $type,
+				"name"	=> $name,
+				"url"	=> $url
+			);
+		
+		}
 
 		return $template;
 
@@ -640,13 +481,11 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_faq_questions( $post_id ) {
 
-		$template = '';
+		$template = [];
 
 		$context 	= 'http://schema.org';
 		$type 		= 'Question';
 		$answerType	= 'Answer';
-
-		$questions = array();
 
 		$args = array(
 			"post_type" 	=> 'ccd_question',
@@ -665,23 +504,17 @@ class CCD_Schema_Generator_Public {
 		$posts = get_posts( $args );
 
 		foreach ( $posts as $post ) {
-			array_push( $questions, array( "name" => $post->post_title, "answer" => $post->post_content ) );
-		}
-
-		foreach ( $questions as $question ) {
-
-			$template .= "
-					{
-						\"@context\": \"{$context}\",
-						\"@type\": \"{$type}\",
-						\"name\": \"{$question['name']}\",
-						\"acceptedAnswer\": {
-							\"@type\": \"{$answerType}\",
-							\"text\": \"{$question['answer']}\"
-						}
-					},
-			";
-
+			
+			array_push( $template, array(
+				"@context" 	=> $context,
+				"@type"		=> $type,
+				"name" 		=> $post->post_title,
+				"acceptedAnswer" => array(
+						"@type"   	=> $answerType,
+						"answer" 	=> limit_words( $post->post_content, 20 )	
+					)
+				)
+			);
 		}
 
 		return $template;
@@ -695,24 +528,26 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_expert_common( $post_id ) {
 
-		$template = '';
+		$template = [];
 
 		$id = $url = $mainEntity = get_post_permalink( $post_id );
 		$name = get_expert_title( $post_id );
-		// $email = 'test email';
 		$description = "Contributor at The Cell Culture Dish.";
 		$image = get_home_url() . wp_get_attachment_image_src( get_post_thumbnail_id( $post_id ), 'full' )[0];
 		
-		$template .= "
-					\"@id\": \"{$id}\",
-					\"url\": \"{$url}\",
-					\"mainEntityofPage\": \"{$mainEntity}\",
-					\"name\": \"{$name}\",
-					\"description\": \"{$description}\",
-					\"image\": \"{$image}\",
-		";
+		if ( $id && $name && $description && $image ) {
 
-		return $template;
+			$template = array(
+				"@id"				=> $id,
+				"url"				=> $url,
+				"mainEntityofPage"	=> $mainEntity,
+				"name"				=> $name,
+				"description"		=> $description,
+				"image"				=> $image
+			);
+
+			return $template;
+		}
 
 	}
 
@@ -723,15 +558,12 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_expert_media( $post_id ) {
 		
-		$template = '';
+		$template = [];
+		$template['sameAs'] = [];
 
-		$linkedin = get_field( 'linkedin_profile', $post_id );
+		$linkedin = get_field( 'expert_linkedin_profile', $post_id );
 
-		$template .= " 
-					\"sameAs\": {
-						\"{$linkedin}\"
-					},
-		";
+		$template['sameAs'] = array( $linkedin );
 
 		return $template;
 
@@ -744,17 +576,16 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_expert_affiliation( $post_id ) {
 
-		$template = '';
+		$template = [];
+		$template['affiliation'] = [];
 
 		$type = 'Organization';
 		$name = get_post_field( 'post_title', get_field( 'expert_company' , $post_id ) );
 
-		$template .= "
-					\"affiliation\": {
-						\"@type\": \"{$type}\",
-						\"name\": \"{$name}\"
-					},		
-		";
+		$template['affiliation'] = array(
+			"@type"	=> $type,
+			"name"	=> $name
+		);
 
 		return $template;
 
@@ -767,17 +598,16 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_expert_organization( $post_id ) {
 
-		$template = '';
+		$template = [];
+		$template['memberOf'] = [];
 
 		$type = 'Organization';
 		$name = get_post_field( 'post_title', get_field( 'expert_company' , $post_id ) );
 
-		$template .= "
-					\"memberOf\": {
-						\"@type\": \"{$type}\",
-						\"name\": \"{$name}\"
-					},		
-		";
+		$template['memberOf'] = array(
+			"@type" => $type,
+			"name"	=> $name
+		);
 
 		return $template;
 
@@ -790,17 +620,16 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_expert_company( $post_id ) {
 
-		$template = '';
+		$template = [];
+		$template['worksFor'] = [];
 
 		$type = 'Organization';
 		$name = get_post_field( 'post_title', get_field( 'expert_company' , $post_id ) );
 
-		$template .= "
-					\"worksFor\": {
-						\"@type\": \"{$type}\",
-						\"name\": \"{$name}\"
-					},		
-		";
+		$template['worksFor'] = array(
+			"@type"	=> $type,
+			"name"	=> $name
+		);
 
 		return $template;
 
@@ -813,13 +642,13 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function get_expert_title( $post_id ) {
 
-		$template = '';
+		$template = [];
 
 		$title = get_field( 'expert_job_title', $post_id );
 
-		$template .= "
-					\"jobTitle\": \"{$title}\"
-		";
+		$template = array(
+			"jobTitle"	=> $title
+		);
 
 		return $template;
 
@@ -832,14 +661,17 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function create_mainpage_schema( $args ) {
 		
+		$body = wp_json_encode( array_merge( 
+				$args['initial_context'],
+				$args['common_info'],
+				$args['social_media'],
+				$args['founder']
+			)	
+		);
+
 		$template = "
 			<script type = \"application/ld+json\" >
-				{
-					{$args['initial_context']}
-					{$args['common_info']}
-					{$args['social_media']}
-					{$args['founder']}
-				} 
+				{$body}
 			</script>
 		";
 
@@ -852,21 +684,22 @@ class CCD_Schema_Generator_Public {
 	 *	
 	 * @since    1.0.0
 	 */
-	public function create_post_schema( $args ) {
+	public function create_post_schema( $post_args ) {
 		
+		$body = wp_json_encode( array_merge( 
+				$post_args['initial_context'],
+				$post_args['post_publisher'],
+				$post_args['post_info'],
+				$post_args['post_author'],
+				$post_args['post_image']
+			)	
+		);
+
 		$template = "
 			<script type = \"application/ld+json\" >
-				{
-					{$args['initial_context']}
-					{$args['post_publisher']}
-					{$args['post_info']}
-					{$args['post_author']}
-					{$args['post_image']}
-				} 
+				{$body} 
 			</script>
 		";
-
-		// {$args['post_sponsor']}
 
 		return $template;
 
@@ -879,16 +712,17 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function create_breadcrumbs_schema( $breadcrumbs_args ) {
 
+		$body = wp_json_encode( array_merge(
+				$breadcrumbs_args['initial_context'],
+				$breadcrumbs_args['breadcrumbs_list'] 
+			) 
+		);
+
 		$template = "
 			<script type = \"application/ld+json\" >
-				{
-					{$breadcrumbs_args['initial_context']}
-					{$breadcrumbs_args['breadcrumbs_list']}
-				} 
+					{$body}
 			</script>
 		";
-
-		// {$args['post_sponsor']}
 
 		return $template;
 
@@ -902,19 +736,20 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function create_qapage_schema( $qapage_args ) {
 
+		$body = wp_json_encode( array_merge( 
+				$qapage_args['initial_context'],
+				$qapage_args['faq_common'],
+				$qapage_args['faq_reviewed_by'],
+				$qapage_args['faq_publisher'],
+				$qapage_args['faq_contributor']
+			) 
+		);
+
 		$template = "
 			<script type = \"application/ld+json\" >
-				{
-					{$qapage_args['initial_context']}
-					{$qapage_args['faq_common']}
-					{$qapage_args['faq_reviewed_by']}
-					{$qapage_args['faq_publisher']}
-					{$qapage_args['faq_contributor']}
-				} 
+				{$body} 
 			</script>
 		";
-
-		// {$args['post_sponsor']}
 
 		return $template;
 
@@ -928,11 +763,11 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function create_qapage_questions_schema( $qapage_questions_args ) {
 
+		$body = wp_json_encode( $qapage_questions_args['questions'] );
+
 		$template = "
 			<script type= \"application/ld+json\" >
-				[
-					{$qapage_questions_args['questions']}
-				]
+					{$body}
 			</script>
 		";
 
@@ -948,17 +783,20 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function create_expert_schema( $expert_args ) {
 
+		$body = wp_json_encode( array_merge( 
+				$expert_args['initial_context'],
+				$expert_args['expert_common'],
+				$expert_args['expert_media'],
+				$expert_args['expert_affiliation'],
+				$expert_args['expert_organization'],
+				$expert_args['expert_company'],
+				$expert_args['expert_title']
+			)	
+		);
+
 		$template = "
 			<script type = \"application/ld+json\" >
-				{
-					{$expert_args['initial_context']}
-					{$expert_args['expert_common']}
-					{$expert_args['expert_media']}
-					{$expert_args['expert_affiliation']}
-					{$expert_args['expert_organization']}
-					{$expert_args['expert_company']}
-					{$expert_args['expert_title']}
-				} 
+				{$body} 
 			</script>
 		";
 
@@ -999,14 +837,12 @@ class CCD_Schema_Generator_Public {
 			$post_info			= $this->get_post_info( $post_id );
 			$post_author		= $this->get_post_author( $post_id );
 			$post_image			= $this->get_post_image( $post_id );
-			// $post_sponsor		= $this->get_post_sponsor( $post_id );
 
 			$post_args['initial_context']	= $initial_context;
 			$post_args['post_publisher']	= $post_publisher;
 			$post_args['post_info'] 		= $post_info;
 			$post_args['post_author']		= $post_author;
 			$post_args['post_image']		= $post_image;
-			// $post_args['post_sponsor']		= $post_sponsor;
 
 			echo $this->create_post_schema( $post_args );
 			
@@ -1062,7 +898,7 @@ class CCD_Schema_Generator_Public {
 	}
 
 	/**
-	 * The function is the main entry point, it gets all breadcrumbs array,
+	 * The function is the main entry point, it gets the whole breadcrumbs array,
 	 * pass it through template and output the result in '<footer>' section 
 	 *	
 	 * @since    1.0.0
