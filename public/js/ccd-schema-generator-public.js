@@ -31,16 +31,16 @@
 
 
 	// Move breadcrumbs schema to header
-	$(document).ready( function() {
+	// $(document).ready( function() {
 
-		var scripts = $('script[type="application/ld+json"]');		
+	// 	var scripts = $('script[type="application/ld+json"]');		
 		
-		if (scripts.length >= 2) {
-			scripts.last().insertBefore(scripts.first());
-		} else {
-			$('head').append( scripts.last() );
-		}
+	// 	if (scripts.length >= 2) {
+	// 		scripts.last().insertBefore(scripts.first());
+	// 	} else {
+	// 		$('head').append( scripts.last() );
+	// 	}
 
-	} )
+	// } )
 
 })( jQuery );
