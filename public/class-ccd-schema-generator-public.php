@@ -78,12 +78,48 @@ class CCD_Schema_Generator_Public {
 				"@context" 	=> $context,
 				"@type" 	=> $type
 			);
+
 		}
 
 		return $template;
 
 	}
 
+	/**
+	 * Get an initial context, receives an array of arguments and return a general schema
+	 *	
+	 * @since    1.0.0
+	 */
+	public function build() {
+
+		$this->data = $this->get_initial_context( $this->type );
+
+        foreach ( $this->arguments as $argument ) {
+            
+            $argument = call_user_func( array( $this, "get_{$argument}" ) );
+            $this->data = array_merge( $this->data, $argument );
+        
+        }
+
+		$body = wp_json_encode( $this->data );
+
+		$this->schema = "
+			<script type = \"application/ld+json\" >
+				{$body}
+			</script>
+        ";
+        
+	}
+	
+	/**
+	 * Output the result on the page
+	 *	
+	 * @since    1.0.0
+	 */
+	public function output() {
+        echo $this->schema;
+	}
+	
 	/**
 	 * The function is the main entry point for header scripts, it checks
 	 * for the type of the page, initializes required class and outputs the schema
@@ -121,13 +157,23 @@ class CCD_Schema_Generator_Public {
 			// Check if current page is QA Page
 			if ( $post_format_slug == 'expert-sessions' ) {
 
-				$arguments	= [ 'qa_common', 'qa_reviewed_by', 'qa_publisher', 'qa_contributor' ];
-				$type 		= 'QAPage';
+				$main_arguments			= [ 'qa_common', 'qa_reviewed_by', 'qa_publisher', 'qa_contributor' ];
+				$questions_arguments 	= [ 'qa_questions' ];
+
+				$main_type 		= 'QAPage';
+				$questions_type = '';
+				
 				$post_id 	= get_the_ID();
 
-				$schema = new CCD_Schema_Generator_QAPage( $arguments, $type, $post_id );
-				$schema->build();
-				$schema->output();
+				$main_schema = new CCD_Schema_Generator_QAPage( $main_arguments, $main_type, $post_id );
+				$questions_schema = new CCD_Schema_Generator_QAPage( $questions_arguments, $questions_type, $post_id );
+
+				$main_schema->build();
+				$main_schema->output();
+
+
+				$questions_schema->build();
+				$questions_schema->output();
 	
 			}
 

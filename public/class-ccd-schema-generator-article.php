@@ -8,7 +8,7 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-    private $arguments;
+    protected $arguments;
 
     /**
 	 * The main array of data splitted on a few arrays according to the list of arguments
@@ -16,7 +16,7 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-    private $data;
+    protected $data;
     
     /**
 	 * The main type of schema to be set along with context
@@ -24,7 +24,7 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-    private $type;
+    protected $type;
 
     /**
 	 * Current post's ID
@@ -32,7 +32,7 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-    private $post_id;
+    protected $post_id;
 
     /**
 	 * The final string to output on the page
@@ -40,7 +40,7 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-	private $schema;
+	protected $schema;
 
 	/**
 	 * Initialize the class and set its properties.
@@ -240,35 +240,5 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 
 		return $template;
 	}
-    
-    /**
-	 * Get an initial context, Receives an array of arguments and return a genaeral schema
-	 *	
-	 * @since    1.0.0
-	 */
-	public function build() {
-
-        $this->data = $this->get_initial_context( $this->type );
-
-        foreach ( $this->arguments as $argument ) {
-            
-            $argument = call_user_func( array( $this, "get_{$argument}" ) );
-            $this->data = array_merge( $this->data, $argument );
-        
-        }
-
-		$body = wp_json_encode( $this->data );
-
-		$this->schema = "
-			<script type = \"application/ld+json\" >
-				{$body}
-			</script>
-        ";
-        
-    }
-
-    public function output() {
-        echo $this->schema;
-    }
 
 }
