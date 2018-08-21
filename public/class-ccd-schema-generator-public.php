@@ -140,8 +140,11 @@ class CCD_Schema_Generator_Public {
 
 		}
 
+		$post_type = get_post_type( get_the_ID() );
+		$allowed_post_types = array( 'post', 'ccd_question', 'ccd_company', 'ccd_expert' );
+
 		// Check if current page is Post
-		if ( is_single() ) {
+		if ( in_array( $post_type, $allowed_post_types ) ) {
 
 			$arguments	= [ 'post_publisher', 'post_info', 'post_author', 'post_image' ];
 			$type 		= 'Article';
@@ -170,7 +173,6 @@ class CCD_Schema_Generator_Public {
 
 				$main_schema->build();
 				$main_schema->output();
-
 
 				$questions_schema->build();
 				$questions_schema->output();
