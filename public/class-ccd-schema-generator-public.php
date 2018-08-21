@@ -96,9 +96,12 @@ class CCD_Schema_Generator_Public {
 
         foreach ( $this->arguments as $argument ) {
             
-            $argument = call_user_func( array( $this, "get_{$argument}" ) );
-            $this->data = array_merge( $this->data, $argument );
-        
+			$result = call_user_func( array( $this, "get_{$argument}" ) );
+
+			if ( !empty( array_filter( $result ) ) ) {
+	            $this->data = array_merge( $this->data, $result );
+			}
+
         }
 
 		$body = wp_json_encode( $this->data );

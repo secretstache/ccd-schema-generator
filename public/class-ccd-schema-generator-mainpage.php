@@ -58,31 +58,24 @@ class CCD_Schema_Generator_Mainpage extends CCD_Schema_Generator_Public {
 
 		$template = [];
 		
-		$id = $url = $mainEntity	= get_bloginfo('url');
-		$name = $brand				= get_bloginfo('name');
-		$email 						= get_field( 'ccd_default_email', 'options' );
-		$description				= get_bloginfo('description');
+		$id = $url = $mainEntityofPage	= get_bloginfo('url');
+		$name = $brand					= get_bloginfo('name');
+		$email 							= get_field( 'ccd_default_email', 'options' );
+		$description					= get_bloginfo('description');
 
-		$logo = get_field('schema_brand_logo', 'options');
-		$logo_url = $logo['url'];
-		$logo_width = $logo['width'];
-		$logo_height = $logo['height'];
-		$image_url = $logo['url'];
+		$logo_field = get_field('schema_brand_logo', 'options');
+		$logo = $image = $logo_field['url'];
 
-		if ( $id && $name ) {
+		if ( $id ) {
+			$template['@id'] = $id;
+		}
+		
+		$arguments = ['url', 'mainEntityofPage', 'name', 'email', 'brand', 'description', 'logo', 'image'];
 
-			$template = array(
-					"@id" 				=> $id,
-					"url" 				=> $url,
-					"mainEntityofPage"	=> $mainEntity,
-					"name"				=> $name,
-					"email"				=> $email,
-					"brand"				=> $brand,
-					"description"		=> $description,
-					"logo"				=> $logo_url,
-					"image"				=> $image_url
-			);
-
+		foreach ( $arguments as $argument ) {
+			if ( $$argument ) {
+				$template[$argument] = $$argument;
+			}
 		}
 
 		return $template;
@@ -125,10 +118,14 @@ class CCD_Schema_Generator_Mainpage extends CCD_Schema_Generator_Public {
 		$type = 'Person';
 		$name = get_field('ccd_founder', 'options');
 
-		$template['founder'] = array(
-			"@type" => $type,
-			"name" 	=> $name
-		);
+		if ( $name ) {
+			
+			$template['founder'] = array(
+				"@type" => $type,
+				"name" 	=> $name
+			);
+		
+		}
 
 		return $template;
 
