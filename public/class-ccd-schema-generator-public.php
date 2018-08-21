@@ -106,11 +106,13 @@ class CCD_Schema_Generator_Public {
 
 		$body = wp_json_encode( $this->data );
 
-		$this->schema = "
-			<script type = \"application/ld+json\" >
-				{$body}
-			</script>
-        ";
+		if ( $body ) {
+			$this->schema = "
+				<script type = \"application/ld+json\" >
+					{$body}
+				</script>
+			";
+		}
         
 	}
 	
@@ -120,7 +122,7 @@ class CCD_Schema_Generator_Public {
 	 * @since    1.0.0
 	 */
 	public function output() {
-        echo $this->schema;
+        echo ( $this->schema ) ? $this->schema : '';
 	}
 	
 	/**
