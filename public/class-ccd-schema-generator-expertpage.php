@@ -67,24 +67,24 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
 
 		$template = [];
 
-		$id = $url = $mainEntity = get_post_permalink( $this->post_id );
+		$id = $url = $mainEntityofPage = get_post_permalink( $this->post_id );
 		$name = get_expert_title( $this->post_id );
 		$description = "Contributor at The Cell Culture Dish.";
 		$image = get_home_url() . wp_get_attachment_image_src( get_post_thumbnail_id( $this->post_id ), 'full' )[0];
 		
-		if ( $id && $name && $description && $image ) {
-
-			$template = array(
-				"@id"				=> $id,
-				"url"				=> $url,
-				"mainEntityofPage"	=> $mainEntity,
-				"name"				=> $name,
-				"description"		=> $description,
-				"image"				=> $image
-			);
-
-			return $template;
+		if ( $id ) {
+			$template['@id'] = $id;
 		}
+
+		$arguments = ['url', 'mainEntityofPage', 'name', 'description', 'image'];
+
+		foreach ( $arguments as $argument ) {
+			if ( $$argument ) {
+				$template[$argument] = $$argument;
+			}
+		}
+
+		return $template;
 
 	}
 
@@ -100,7 +100,9 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
 
 		$linkedin = get_field( 'expert_linkedin_profile', $this->post_id );
 
-		$template['sameAs'] = array( $linkedin );
+		if ( $linkedin ) {
+			$template['sameAs'] = array( $linkedin );
+		}
 
 		return $template;
 
@@ -119,10 +121,14 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
 		$type = 'Organization';
 		$name = get_post_field( 'post_title', get_field( 'expert_company' , $this->post_id ) );
 
-		$template['affiliation'] = array(
-			"@type"	=> $type,
-			"name"	=> $name
-		);
+		if ( $name ) {
+		
+			$template['affiliation'] = array(
+				"@type"	=> $type,
+				"name"	=> $name
+			);
+		
+		}
 
 		return $template;
 
@@ -141,10 +147,14 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
 		$type = 'Organization';
 		$name = get_post_field( 'post_title', get_field( 'expert_company' , $this->post_id ) );
 
-		$template['memberOf'] = array(
-			"@type" => $type,
-			"name"	=> $name
-		);
+		if ( $name ) {
+
+			$template['memberOf'] = array(
+				"@type" => $type,
+				"name"	=> $name
+			);
+
+		}
 
 		return $template;
 
@@ -163,10 +173,14 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
 		$type = 'Organization';
 		$name = get_post_field( 'post_title', get_field( 'expert_company' , $this->post_id ) );
 
-		$template['worksFor'] = array(
-			"@type"	=> $type,
-			"name"	=> $name
-		);
+		if ($name) {
+
+			$template['worksFor'] = array(
+				"@type"	=> $type,
+				"name"	=> $name
+			);
+
+		}
 
 		return $template;
 
@@ -183,9 +197,13 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
 
 		$title = get_field( 'expert_job_title', $this->post_id );
 
-		$template = array(
-			"jobTitle"	=> $title
-		);
+		if ( $title ) {
+
+			$template = array(
+				"jobTitle"	=> $title
+			);
+
+		}
 
 		return $template;
 
