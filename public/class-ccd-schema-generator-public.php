@@ -57,6 +57,11 @@ class CCD_Schema_Generator_Public {
 		 * The class responsible for Expert Page.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . '/public/class-ccd-schema-generator-expertpage.php';
+		
+		/**
+		 * The class responsible for Author Page.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . '/public/class-ccd-schema-generator-authorpage.php';
    
 	}
 
@@ -133,7 +138,7 @@ class CCD_Schema_Generator_Public {
 	 */
 	public function header_schema() {
 
-		// Check if current page is Front Page
+		// Front Page schema
 		if ( is_front_page() ) {
 
 			$arguments	= [ 'common_info', 'social_media', 'founder' ];
@@ -145,61 +150,73 @@ class CCD_Schema_Generator_Public {
 
 		}
 
-		$post_type = get_post_type( get_the_ID() );
-		$allowed_post_types = array( 'post', 'ccd_question', 'ccd_company', 'ccd_expert' );
+		// Check the current type of the post		
+		if (is_author()) {
+			$post_id = get_post_field( 'post_author', get_the_ID() );
+		} else {
+			$post_id = get_the_ID();
+		}
 
-		// Check if current page is Post
-		if ( in_array( $post_type, $allowed_post_types ) ) {
+		$post_type	= get_post_type( $post_id );
+		$post_format_slug = get_term_by( 'id', get_post_meta( $post_id, 'post_format', true ), 'ccd_post_format' )->slug;
+
+		// General Article schema
+		if ( is_singular('post') && $post_format_slug != 'expert-sessions' ) {
 
 			$arguments	= [ 'post_publisher', 'post_info', 'post_author', 'post_image' ];
 			$type 		= 'Article';
-			$post_id 	= get_the_ID();
 
 			$schema = new CCD_Schema_Generator_Article( $arguments, $type, $post_id );
 			$schema->build();
 			$schema->output();
+		
+		}
+
+		// QA Page Schema
+		if ( $post_format_slug == 'expert-sessions' ) {
+
+			$main_arguments			= [ 'qa_common', 'qa_reviewed_by', 'qa_publisher', 'qa_contributor' ];
+			$questions_arguments 	= [ 'qa_questions' ];
+
+			$main_type 		= 'QAPage';
+			$questions_type = '';
 			
+			$main_schema = new CCD_Schema_Generator_QAPage( $main_arguments, $main_type, $post_id );
+			$questions_schema = new CCD_Schema_Generator_QAPage( $questions_arguments, $questions_type, $post_id );
 
-			$post_format_slug = get_term_by( 'id', get_post_meta( $post_id, 'post_format', true ), 'ccd_post_format' )->slug;
+			$main_schema->build();
+			$main_schema->output();
 
-			// Check if current page is QA Page
-			if ( $post_format_slug == 'expert-sessions' ) {
-
-				$main_arguments			= [ 'qa_common', 'qa_reviewed_by', 'qa_publisher', 'qa_contributor' ];
-				$questions_arguments 	= [ 'qa_questions' ];
-
-				$main_type 		= 'QAPage';
-				$questions_type = '';
-				
-				$post_id 	= get_the_ID();
-
-				$main_schema = new CCD_Schema_Generator_QAPage( $main_arguments, $main_type, $post_id );
-				$questions_schema = new CCD_Schema_Generator_QAPage( $questions_arguments, $questions_type, $post_id );
-
-				$main_schema->build();
-				$main_schema->output();
-
-				$questions_schema->build();
-				$questions_schema->output();
-	
-			}
-
-			// Check if current page is Single Expert Page
-			if ( get_post_type( $post_id ) == "ccd_expert" ) {
-
-				$arguments	= [ 'expert_common', 'expert_media', 'expert_affiliation', 'expert_organization', 'expert_company', 'expert_title' ];
-				$type 		= 'Person';
-				$post_id 	= get_the_ID();
-
-				$schema = new CCD_Schema_Generator_ExpertPage( $arguments, $type, $post_id );
-				$schema->build();
-				$schema->output();
-
-			}
+			$questions_schema->build();
+			$questions_schema->output();
 
 		}
 
+		// Expert Page schema
+		if ( $post_type == "ccd_expert" ) {
+
+			$arguments	= [ 'expert_common', 'expert_media', 'expert_affiliation', 'expert_organization', 'expert_company', 'expert_title' ];
+			$type 		= 'Person';
+
+			$schema = new CCD_Schema_Generator_ExpertPage( $arguments, $type, $post_id );
+			$schema->build();
+			$schema->output();
+
+		}
+
+		// Author Page schema
+		if ( is_author() ) {
+
+			$arguments	= [ 'author_common', 'author_media', 'author_affiliation', 'author_organization', 'author_company', 'author_title' ];
+			$type 		= 'Person';
+
+			$schema = new CCD_Schema_Generator_AuthorPage( $arguments, $type, $post_id );
+			$schema->build();
+			$schema->output();
+
+		}	
 	}
+
 
 	/**
 	 * The function is the main entry point for footer scripts, it checks the availability of

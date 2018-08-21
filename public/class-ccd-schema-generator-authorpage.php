@@ -1,6 +1,6 @@
 <?php
 
-class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
+class CCD_Schema_Generator_AuthorPage extends CCD_Schema_Generator_Public {
 
     /**
 	 * The array of arguments needed to be included in the schema
@@ -59,20 +59,20 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
     }
 	
 	/**
-	 * Get Expert Page Common info
+	 * Get Author Page Common info
 	 *	
 	 * @since    1.0.0
 	 */
-	public function get_expert_common() {
+	public function get_author_common() {
 
 		$template = [];
 
-		$id = $url = $mainEntityofPage = get_post_permalink( $this->post_id );
-		$name = get_expert_title( $this->post_id );
-		$email = "";
+        $id = $url = $mainEntityofPage = get_author_posts_url( $this->post_id );
+        $name = get_the_author_meta( 'first_name', $this->post_id ) . " " . get_the_author_meta( 'last_name', $this->post_id );
+        $email = get_the_author_meta( 'email', $this->post_id );
 		$description = "Contributor at The Cell Culture Dish.";
-		$image = wp_get_attachment_image_src( get_post_thumbnail_id( $this->post_id ), 'full' )[0];
-		
+		$image = get_avatar_url( $this->post_id );
+
 		if ( $id ) {
 			$template['@id'] = $id;
 		}
@@ -90,16 +90,16 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
 	}
 
 	/**
-	 * Get Expert Page social media info
+	 * Get Author Page social media info
 	 *	
 	 * @since    1.0.0
 	 */
-	public function get_expert_media() {
+	public function get_author_media() {
 		
 		$template = [];
 		$template['sameAs'] = [];
 
-		$linkedin = get_field( 'expert_linkedin_profile', $this->post_id );
+        $linkedin = get_user_meta( $this->post_id, 'user_linkedin_profile', true );
 
 		if ( $linkedin ) {
 			$template['sameAs'] = array( $linkedin );
@@ -110,18 +110,18 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
 	}
 
 	/**
-	 * Get Expert Page affiliation info
+	 * Get Author Page affiliation info
 	 *	
 	 * @since    1.0.0
 	 */
-	public function get_expert_affiliation() {
+	public function get_author_affiliation() {
 
 		$template = [];
 		$template['affiliation'] = [];
 
 		$type = 'Organization';
-		$name = get_post_field( 'post_title', get_field( 'expert_company' , $this->post_id ) );
-
+        $name = get_user_meta( $this->post_id, 'user_company', true );
+        
 		if ( $name ) {
 		
 			$template['affiliation'] = array(
@@ -136,17 +136,17 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
 	}
 
 	/**
-	 * Get Expert Page organization info
+	 * Get Author Page organization info
 	 *	
 	 * @since    1.0.0
 	 */
-	public function get_expert_organization() {
+	public function get_author_organization() {
 
 		$template = [];
-		$template['memberOf'] = [];
+        $template['memberOf'] = [];
 
 		$type = 'Organization';
-		$name = get_post_field( 'post_title', get_field( 'expert_company' , $this->post_id ) );
+		$name = get_user_meta( $this->post_id, 'user_company', true );
 
 		if ( $name ) {
 
@@ -162,17 +162,17 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
 	}
 
 	/**
-	 * Get Expert Page company info
+	 * Get Author Page company info
 	 *	
 	 * @since    1.0.0
 	 */
-	public function get_expert_company() {
+	public function get_author_company() {
 
 		$template = [];
 		$template['worksFor'] = [];
 
 		$type = 'Organization';
-		$name = get_post_field( 'post_title', get_field( 'expert_company' , $this->post_id ) );
+		$name = get_user_meta( $this->post_id, 'user_company', true );
 
 		if ($name) {
 
@@ -188,20 +188,20 @@ class CCD_Schema_Generator_ExpertPage extends CCD_Schema_Generator_Public {
 	}
 
 	/**
-	 * Get Expert Page title
+	 * Get Author Page title
 	 *	
 	 * @since    1.0.0
 	 */
-	public function get_expert_title() {
+	public function get_author_title() {
 
 		$template = [];
 
-		$title = get_field( 'expert_job_title', $this->post_id );
+		$jobTitle = get_user_meta( $this->post_id, 'user_job_title', true );
 
-		if ( $title ) {
+		if ( $jobTitle ) {
 
 			$template = array(
-				"jobTitle"	=> $title
+				"jobTitle"	=> $jobTitle
 			);
 
 		}
