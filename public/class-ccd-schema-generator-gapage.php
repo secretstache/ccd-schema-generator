@@ -200,7 +200,7 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
 				"name" 		=> $post->post_title,
 				"acceptedAnswer" => array(
 						"@type"   	=> $answerType,
-						"answer" 	=> limit_words( $post->post_content, 20 )	
+						"answer" 	=> limit_words( $post->post_content, 20, false )	
 					)
 				)
 			);
