@@ -67,7 +67,6 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
     
     }
 
-
 	/**
 	 * Get QA Page common info
 	 *	
@@ -80,11 +79,17 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
 		$id = $url = get_the_permalink( $this->post_id );
 		$about = get_term_by( 'id', get_post_meta( $this->post_id, 'post_category', true ), 'category' )->name;
 		
-		$template = array(
-			"@id"	=> $id,
-			"url"	=> $url,
-			"about"	=> $about
-		);
+		if ( $id ) {
+			$template['@id'] = $id;
+		}
+
+		$arguments = ['url', 'about'];
+
+		foreach ( $arguments as $argument ) {
+			if ( $$argument ) {
+				$template[$argument] = $$argument;
+			}
+		}
 
 		return $template;
 
@@ -103,10 +108,14 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
 		$type = 'Organization';
 		$name = get_bloginfo('name');
 
-		$template['reviewedBy'] = array(
-			"@type" => $type,
-			"name"	=> $name
-		);
+		if ( $name ) {
+
+			$template['reviewedBy'] = array(
+				"@type" => $type,
+				"name"	=> $name
+			);	
+		
+		}
 
 		return $template;
 
@@ -125,10 +134,14 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
 		$type = 'Organization';
 		$name = get_bloginfo('name');
 
-		$template['publisher'] = array(
-			"@type"	=> $type,
-			"name"	=> $name
-		);
+		if ( $name ) {
+
+			$template['publisher'] = array(
+				"@type"	=> $type,
+				"name"	=> $name
+			);
+		
+		}
 
 		return $template;
 
@@ -147,15 +160,20 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
 		$contributor_id = get_post_meta( $this->post_id, 'additional_author', true );
 
 		if ( $contributor_id ) {
+
 			$type 	= 'Person';
 			$name 	= get_expert_title( $contributor_id );
 			$url 	= get_post_permalink( $contributor_id );
 
-			$template['contributor'] = array(
-				"@type"	=> $type,
-				"name"	=> $name,
-				"url"	=> $url
-			);
+			$template['contributor']['type'] = $type;
+
+			$arguments = ['name', 'url'];
+			
+			foreach ( $arguments as $argument ) {
+				if ( $$argument ) {
+					$template['contributor'][$argument] = $$argument;
+				}
+			}
 		
 		}
 
@@ -192,18 +210,22 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
 
 		$posts = get_posts( $args );
 
-		foreach ( $posts as $post ) {
-			
-			array_push( $template, array(
-				"@context" 	=> $context,
-				"@type"		=> $type,
-				"name" 		=> $post->post_title,
-				"acceptedAnswer" => array(
-						"@type"   	=> $answerType,
-						"answer" 	=> limit_words( $post->post_content, 20, false )	
+		if ( !empty($posts) ) {
+		
+			foreach ( $posts as $post ) {
+				
+				array_push( $template, array(
+					"@context" 	=> $context,
+					"@type"		=> $type,
+					"name" 		=> $post->post_title,
+					"acceptedAnswer" => array(
+							"@type"   	=> $answerType,
+							"answer" 	=> limit_words( $post->post_content, 20, false )	
+						)
 					)
-				)
-			);
+				);
+			}
+		
 		}
 
 		return $template;
