@@ -58,7 +58,6 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
     
     }
 
-
 	/**
 	 * Get post publisher
 	 *	
@@ -86,17 +85,20 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 
 		if ( get_field( 'schema_brand_logo', 'options' ) ) {
 
-			$logo_type 		= "ImageObject";
-			$logo_url		= get_field('schema_brand_logo', 'options')['url'];
-			$logo_width		= get_field('schema_brand_logo', 'options')['width'];
-			$logo_height	= ssm_get_field('schema_brand_logo', 'options')['height'];
+			$type 	= "ImageObject";
+			$url	= get_field('schema_brand_logo', 'options')['url'];
+			$width	= get_field('schema_brand_logo', 'options')['width'];
+			$height	= ssm_get_field('schema_brand_logo', 'options')['height'];
 
-			$template['publisher']['logo'] = array(
-				"@type" 	=> $logo_type,
-				"url"		=> $logo_url,
-				"width"		=> $logo_width,
-				"height"	=> $logo_height
-			);
+			$template['publisher']['logo']['@type'] = $type;
+
+			$arguments = ['url', 'width', 'height'];
+
+			foreach ( $arguments as $argument ) {
+				if ( $$argument ) {
+					$template['publisher']['logo'][$argument] = $$argument;
+				}
+			}
 
 		}
 
@@ -114,16 +116,18 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 
 		$template = [];
 
-		$link = get_the_permalink( $this->post_id );
-		$title = get_the_title( $this->post_id );
-		$date_published = get_the_date( "Y-m-d\TG:i:s\.000\Z", $this->post_id );
-		$date_modified = get_the_modified_date( "Y-m-d\TG:i:s\.000\Z", $this->post_id );
+		$mainEntityOfPage = get_the_permalink( $this->post_id );
+		$headline = get_the_title( $this->post_id );
+		$datePublished = get_the_date( "Y-m-d\TG:i:s\.000\Z", $this->post_id );
+		$dateModified = get_the_modified_date( "Y-m-d\TG:i:s\.000\Z", $this->post_id );
 
+		$arguments = ['mainEntityOfPage', 'headline', 'datePublished', 'dateModified' ];
 
-		$template['mainEntityOfPage']	= $link ? $link : '';
-		$template['headline']			= $title ? $title : '';
-		$template['datePublished']		= $date_published ? $date_published : '';
-		$template['dateModified']		= $date_modified ? $date_modified : '';
+		foreach ( $arguments as $argument ) {
+			if ( $$argument ) {
+				$template[$argument] = $$argument;
+			}
+		}
 
 		return $template;
 
@@ -139,21 +143,21 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 		$template = [];
 
 		$main_author = get_user_meta( get_post_field ('post_author', $this->post_id ) );		
-
-		if ($main_author) {
+		
+		if ( $main_author ) {
 
 			$template['author'] = [];
-
 			$type 	= "Person";
 			$name	= $main_author['first_name'][0] . " " . $main_author['last_name'][0];
 			$url 	= get_author_posts_url( get_post_field ('post_author', $this->post_id ) );
-
-			$template['author'][] = array(
-				"@type" => $type,
-				"name"	=> $name,
-				"url" 	=> $url
-			);
-				
+			
+			if ( $name && $url ) {
+				$template['author'][] = array(
+					"@type" => $type,
+					"name"	=> $name,
+					"url" 	=> $url
+				);
+			}
 		}
 
 		$additional_author_id = get_post_meta( $this->post_id, 'additional_author', true );
@@ -164,16 +168,19 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 			$name	= get_post_field ('post_title', $additional_author_id );
 			$url 	= get_post_permalink( $additional_author_id );
 
-			$template['author'][] = array(
-				"@type" => $type,
-				"name"	=> $name,
-				"url" 	=> $url
-			);
+			if ( $name && $url ) {
 
+				$template['author'][] = array(
+					"@type" => $type,
+					"name"	=> $name,
+					"url" 	=> $url
+				);
+				
+			}
 		}
-
+		
 		return $template;
-
+	
 	}
 
 	/**
@@ -190,55 +197,25 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 
 		if ( $image ) {
 
-				$image_type 	= "ImageObject";
-				$image_url		= $image[0];
-				$image_width	= $image[1];
-				$image_height	= $image[2];
-	
-				$template['image'] = array(
-					"@type" 	=> $image_type,
-					"url"		=> $image_url,
-					"width" 	=> $image_width,
-					"height"	=> $image_height
-				);
+			$type 	= "ImageObject";
+			$url	= $image[0];
+			$width	= $image[1];
+			$height	= $image[2];
+
+			$template['image']['@type'] = $type;
+
+			$arguments = ['url', 'width', 'height'];
+
+			foreach ( $arguments as $argument ) {
+				if ( $$argument ) {
+					$template['image'][$argument] = $$argument;
+				}
+			}
 
 		}
 
 		return $template;
 
-	}
-
-	/**
-	 * Get post sponsor
-	 *	
-	 * @since    1.0.0
-	 */
-	public function get_post_sponsor() {
-
-		$template = "";
-
-		$sponsor_id = get_post_meta( $this->post_id, 'post_sponsorship_sponsor', true );
-
-		if ( $sponsor_id ) {
-
-			$type 			= "Organization";
-			$name 			= get_post_field ('post_title', $sponsor_id );
-			$description	= get_post_field ('post_content', $sponsor_id );
-			$url 			= get_post_permalink( $sponsor_id );
-
-			$template .= "
-					\"sponsor\":
-					{
-						\"@type\": \"{$type}\",
-						\"name\": \"{$name}\",
-						\"description\": \"{$description}\",
-						\"url\": \"{$url}\"
-					},			
-			";
-		
-		}
-
-		return $template;
 	}
 
 }

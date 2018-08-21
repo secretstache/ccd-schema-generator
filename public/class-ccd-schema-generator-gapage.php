@@ -165,7 +165,7 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
 			$name 	= get_expert_title( $contributor_id );
 			$url 	= get_post_permalink( $contributor_id );
 
-			$template['contributor']['type'] = $type;
+			$template['contributor']['@type'] = $type;
 
 			$arguments = ['name', 'url'];
 			
