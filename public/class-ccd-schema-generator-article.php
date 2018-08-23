@@ -192,15 +192,20 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 
 		$template = [];
 		$template['image'] = [];
+		$image = array();
 
-		$image = wp_get_attachment_image_src( get_post_thumbnail_id( $this->post_id ), 'full' );
+		if ( function_exists('get_schema_image_array') ) {
+			$image = get_schema_image_array( $this->post_id );
+		} else {
+			$image = wp_get_attachment_image_src( get_post_thumbnail_id( $this->post_id ), 'full' );
+		}
 
-		if ( $image ) {
+		if ( !empty( $image ) ) {
 
 			$type 	= "ImageObject";
-			$url	= $image[0];
-			$width	= $image[1];
-			$height	= $image[2];
+			$url	= $image['url'];
+			$width	= $image['width'];
+			$height	= $image['height'];
 
 			$template['image']['@type'] = $type;
 
