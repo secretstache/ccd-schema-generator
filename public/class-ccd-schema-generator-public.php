@@ -51,7 +51,7 @@ class CCD_Schema_Generator_Public {
 	   /**
 		 * The class responsible for QA Page.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . '/public/class-ccd-schema-generator-gapage.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . '/public/class-ccd-schema-generator-qapage.php';
 
 		/**
 		 * The class responsible for Expert Page.
