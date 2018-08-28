@@ -9,22 +9,6 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
 	 * @access   private
 	 */
     protected $arguments;
-
-    /**
-	 * The main array of data splitted on a few arrays according to the list of arguments
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 */
-    protected $data;
-
-    /**
-	 * The main array of questions associated with current QA page
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 */
-    protected $questions;    
     
     /**
 	 * The main type of schema to be set along with context
@@ -40,7 +24,15 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-    protected $post_id;
+	protected $post_id;
+	
+	/**
+	 * The main array of data splitted on a few arrays according to the list of arguments
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
+    protected $data;  
 
     /**
 	 * The final string to output on the page
@@ -62,7 +54,6 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
         $this->type = $type;
         $this->post_id = $post_id;
         $this->data = [];
-        $this->questions = [];
         $this->schema = '';   
     
     }
@@ -173,57 +164,6 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
 				if ( $$argument ) {
 					$template['contributor'][$argument] = $$argument;
 				}
-			}
-		
-		}
-
-		return $template;
-
-	}
-
-	/**
-	 * Get FAQ schema questions
-	 *	
-	 * @since    1.0.0
-	 */
-	public function get_qa_questions() {
-
-		$template = [];
-
-		$context 	= 'http://schema.org';
-		$type 		= 'Question';
-		$answerType	= 'Answer';
-
-		$args = array(
-			"post_type" 	=> 'ccd_question',
-			"numberposts"	=> -1,
-			"order"			=> "ASC",
-
-			'meta_query' 	=> array(
-				array(
-					'key' 		=> 'session_id',
-					'value' 	=> $this->post_id,
-					'compare' 	=> 'LIKE'
-				),
-			)
-		);
-
-		$posts = get_posts( $args );
-
-		if ( !empty($posts) ) {
-		
-			foreach ( $posts as $post ) {
-				
-				array_push( $template, array(
-					"@context" 	=> $context,
-					"@type"		=> $type,
-					"name" 		=> $post->post_title,
-					"acceptedAnswer" => array(
-							"@type"   	=> $answerType,
-							"answer" 	=> $post->post_content
-						)
-					)
-				);
 			}
 		
 		}

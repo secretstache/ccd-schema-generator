@@ -59,6 +59,12 @@ class CCD_Schema_Generator_Public {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . '/public/class-ccd-schema-generator-expertpage.php';
 		
 		/**
+		 * The class responsible for Single Question page.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . '/public/class-ccd-schema-generator-question.php';
+		
+
+		/**
 		 * The class responsible for Author Page.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . '/public/class-ccd-schema-generator-authorpage.php';
@@ -175,20 +181,26 @@ class CCD_Schema_Generator_Public {
 		// QA Page Schema
 		if ( $post_format_slug == 'expert-sessions' ) {
 
-			$main_arguments			= [ 'qa_common', 'qa_reviewed_by', 'qa_publisher', 'qa_contributor' ];
-			$questions_arguments 	= [ 'qa_questions' ];
-
-			$main_type 		= 'QAPage';
-			$questions_type = '';
+			$arguments	= [ 'qa_common', 'qa_reviewed_by', 'qa_publisher', 'qa_contributor' ];
+			$type 		= 'QAPage';
 			
-			$main_schema = new CCD_Schema_Generator_QAPage( $main_arguments, $main_type, $post_id );
-			$questions_schema = new CCD_Schema_Generator_QAPage( $questions_arguments, $questions_type, $post_id );
+			$schema = new CCD_Schema_Generator_QAPage( $arguments, $type, $post_id );
 
-			$main_schema->build();
-			$main_schema->output();
+			$schema->build();
+			$schema->output();
 
-			$questions_schema->build();
-			$questions_schema->output();
+		}
+
+		// Single Question page
+		if ( $post_type == 'ccd_question' ) {
+			
+			$arguments = ['question_common'];
+			$type = 'Question';
+
+			$schema = new CCD_Schema_Generator_Question( $arguments, $type, $post_id );
+			$schema->build();
+			$schema->output();
+
 
 		}
 
