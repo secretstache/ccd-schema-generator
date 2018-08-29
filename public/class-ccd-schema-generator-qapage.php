@@ -148,7 +148,7 @@ class CCD_Schema_Generator_QAPage extends CCD_Schema_Generator_Public {
 		$template = [];
 		$template['contributor'] = [];
 
-		$contributor_id = get_post_meta( $this->post_id, 'additional_author', true );
+		$contributor_id = get_post_meta( $this->post_id, 'session_expert', true );
 
 		if ( $contributor_id ) {
 
