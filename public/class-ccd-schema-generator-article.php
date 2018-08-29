@@ -141,16 +141,17 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 	public function get_post_author() {
 
 		$template = [];
+		$template['author'] = [];
+		$type 	= "Person";
 
-		$main_author = get_user_meta( get_post_field ('post_author', $this->post_id ) );		
-		
-		if ( $main_author ) {
+		$options = get_post_meta( $this->post_id, 'author_options', true );
 
-			$template['author'] = [];
-			$type 	= "Person";
-			$name	= $main_author['first_name'][0] . " " . $main_author['last_name'][0];
-			$url 	= get_author_posts_url( get_post_field ('post_author', $this->post_id ) );
-			
+		if ( $options == 'ccd' ) {
+
+			$author = get_userdata( get_post_meta( $this->post_id, 'ccd_author', true ) );
+			$name = $author->data->display_name;
+			$url = get_author_posts_url( $author->data->ID );
+
 			if ( $name && $url ) {
 				$template['author'][] = array(
 					"@type" => $type,
@@ -158,25 +159,79 @@ class CCD_Schema_Generator_Article extends CCD_Schema_Generator_Public {
 					"url" 	=> $url
 				);
 			}
-		}
 
-		$additional_author_id = get_post_meta( $this->post_id, 'additional_author', true );
 
-		if ( $additional_author_id ) {
+		} elseif ( $options == 'co_written' ) {
 
-			$type 	= "Person";
-			$name	= get_post_field ('post_title', $additional_author_id );
-			$url 	= get_post_permalink( $additional_author_id );
+			$author = get_userdata( get_post_meta( $this->post_id, 'ccd_author', true ) );
+			$name = $author->data->display_name;
+			$url = get_author_posts_url( $author->data->ID );
 
 			if ( $name && $url ) {
-
 				$template['author'][] = array(
 					"@type" => $type,
 					"name"	=> $name,
 					"url" 	=> $url
 				);
-				
 			}
+
+			$contributors = get_post_meta( $this->post_id, 'contributing_experts', true );
+
+			if ( $contributors && !empty( $contributors ) ) {
+
+				foreach ( $contributors as $contributor_id ) {
+
+					$name = get_expert_title( $contributor_id );
+					$url = get_permalink( $contributor_id );
+
+					if ( $name && $url ) {
+						$template['author'][] = array(
+							"@type" => $type,
+							"name"	=> $name,
+							"url" 	=> $url
+						);
+					}
+
+				}
+			}
+
+		} elseif ( $options == 'guest_post' ) {
+
+			$contributors = get_post_meta( $this->post_id, 'contributing_experts', true );
+
+			if ( $contributors && !empty( $contributors ) ) {
+
+				foreach ( $contributors as $contributor_id ) {
+
+					$name = get_expert_title( $contributor_id );
+					$url = get_permalink( $contributor_id );
+
+					if ( $name && $url ) {
+						$template['author'][] = array(
+							"@type" => $type,
+							"name"	=> $name,
+							"url" 	=> $url
+						);
+					}
+
+				}
+			}
+
+		} else {
+
+			$author = get_userdata( get_post_field ('post_author', $this->post_id ) );
+
+			$name = $author->data->display_name;
+			$url = get_author_posts_url( $author->data->ID );
+
+			if ( $name && $url ) {
+				$template['author'][] = array(
+					"@type" => $type,
+					"name"	=> $name,
+					"url" 	=> $url
+				);
+			}
+
 		}
 		
 		return $template;
