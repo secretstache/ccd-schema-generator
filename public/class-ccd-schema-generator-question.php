@@ -56,7 +56,121 @@ class CCD_Schema_Generator_Question extends CCD_Schema_Generator_Public {
         $this->data = [];
         $this->schema = '';   
     
-    }
+	}
+	
+	/**
+	 * Get QA Page common info
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_qa_common() {
+
+		$template = [];
+		$id = $url = get_the_permalink( $this->post_id );
+		$session_id = get_post_meta( $this->post_id, 'session_id', true );
+
+		$about = get_term_by( 'id', get_post_meta( $session_id, 'post_category', true ), 'category' )->name;
+
+		if ( $id ) {
+			$template['@id'] = $id;
+		}
+		$arguments = ['url', 'about'];
+		foreach ( $arguments as $argument ) {
+			if ( $$argument ) {
+				$template[$argument] = $$argument;
+			}
+		}
+		return $template;
+
+	}
+
+
+	/**
+	 * Get QA Page reviwer
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_qa_reviewed_by() {
+
+		$template = [];
+		$template['reviewedBy'] = [];
+
+		$type = 'Organization';
+		$name = get_bloginfo('name');
+
+		if ( $name ) {
+
+			$template['reviewedBy'] = array(
+				"@type" => $type,
+				"name"	=> $name
+			);	
+		
+		}
+
+		return $template;
+
+	}
+
+	/**
+	 * Get QA Page publisher
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_qa_publisher() {
+
+		$template = [];
+		$template['publisher'] = [];
+
+		$type = 'Organization';
+		$name = get_bloginfo('name');
+
+		if ( $name ) {
+
+			$template['publisher'] = array(
+				"@type"	=> $type,
+				"name"	=> $name
+			);
+		
+		}
+
+		return $template;
+
+	}
+
+	/**
+	 * Get QA Page contributor
+	 *	
+	 * @since    1.0.0
+	 */
+	public function get_qa_contributor() {
+
+		$template = [];
+		$template['contributor'] = [];
+
+		$session_id = get_post_meta( $this->post_id, 'session_id', true );
+		$contributor_id = get_post_meta( $session_id, 'session_expert', true );
+
+		if ( $contributor_id ) {
+
+			$type 	= 'Person';
+			$name 	= get_expert_title( $contributor_id );
+			$url 	= get_post_permalink( $contributor_id );
+
+			$template['contributor']['@type'] = $type;
+
+			$arguments = ['name', 'url'];
+			
+			foreach ( $arguments as $argument ) {
+				if ( $$argument ) {
+					$template['contributor'][$argument] = $$argument;
+				}
+			}
+		
+		}
+
+		return $template;
+
+	}
 
 	/**
 	 * Get QA Page common info

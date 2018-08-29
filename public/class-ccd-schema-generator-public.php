@@ -193,13 +193,20 @@ class CCD_Schema_Generator_Public {
 
 		// Single Question page
 		if ( $post_type == 'ccd_question' ) {
-			
-			$arguments = ['question_common'];
-			$type = 'Question';
 
-			$schema = new CCD_Schema_Generator_Question( $arguments, $type, $post_id );
-			$schema->build();
-			$schema->output();
+			$main_arguments = ['qa_common', 'qa_reviewed_by', 'qa_publisher', 'qa_contributor'];
+			$main_type = 'QAPage';
+
+			$main_schema = new CCD_Schema_Generator_Question( $main_arguments, $main_type, $post_id );
+			$main_schema->build();
+			$main_schema->output();
+			
+			$question_arguments = ['question_common'];
+			$question_type = 'Question';
+
+			$question_schema = new CCD_Schema_Generator_Question( $question_arguments, $question_type, $post_id );
+			$question_schema->build();
+			$question_schema->output();
 
 
 		}
